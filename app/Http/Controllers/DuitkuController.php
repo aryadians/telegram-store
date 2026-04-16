@@ -56,6 +56,17 @@ class DuitkuController extends Controller
                         $finalMessage = str_replace(['[PRODUCT_NAME]', '[ACCOUNT_DETAILS]'], [$transaction->product->name, $asset->data_detail], $template);
                         $this->sendToTelegram($transaction->chat_id, $finalMessage);
 
+                        // RATING PROMPT
+                        $ratingText = "⭐ <b>BANTU KAMI BERKEMBANG</b>\n\nBagaimana pengalaman belanja Anda? Silakan berikan rating untuk produk ini:";
+                        $ratingBtns = [[
+                            ['text' => '⭐ 1', 'callback_data' => "RATE_{$transaction->id}_1"],
+                            ['text' => '⭐ 2', 'callback_data' => "RATE_{$transaction->id}_2"],
+                            ['text' => '⭐ 3', 'callback_data' => "RATE_{$transaction->id}_3"],
+                            ['text' => '⭐ 4', 'callback_data' => "RATE_{$transaction->id}_4"],
+                            ['text' => '⭐ 5', 'callback_data' => "RATE_{$transaction->id}_5"],
+                        ]];
+                        $this->sendToTelegramWithButtons($transaction->chat_id, $ratingText, ['inline_keyboard' => $ratingBtns]);
+
                         // --- AUTO TESTIMONIAL CHANNEL ---
                         $user = TelegramUser::where('chat_id', $transaction->chat_id)->first();
                         $testiChannel = Setting::get('testi_channel_id'); // ID Channel Anda
@@ -85,5 +96,15 @@ class DuitkuController extends Controller
     protected function sendToTelegram($chatId, $text) {
         $token = env('TELEGRAM_BOT_TOKEN');
         Http::post("https://api.telegram.org/bot{$token}/sendMessage", ['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'HTML']);
+    }
+
+    protected function sendToTelegramWithButtons($chatId, $text, $replyMarkup) {
+        $token = env('TELEGRAM_BOT_TOKEN');
+        Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
+            'chat_id' => $chatId, 
+            'text' => $text, 
+            'parse_mode' => 'HTML',
+            'reply_markup' => json_encode($replyMarkup)
+        ]);
     }
 }

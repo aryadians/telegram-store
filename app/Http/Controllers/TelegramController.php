@@ -12,6 +12,7 @@ use App\Models\Deposit;
 use App\Models\DigitalAsset;
 use App\Models\Favorite;
 use App\Models\Faq;
+use App\Models\Rating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -87,8 +88,24 @@ class TelegramController extends Controller
         elseif (str_starts_with($data, 'PAY_QRIS_')) $this->processOrder($chatId, str_replace('PAY_QRIS_', '', $data));
         elseif (str_starts_with($data, 'PAY_BAL_')) $this->payWithBalance($chatId, str_replace('PAY_BAL_', '', $data));
         elseif (str_starts_with($data, 'DEP_')) $this->processDeposit($chatId, str_replace('DEP_', '', $data));
+        elseif (str_starts_with($data, 'RATE_')) $this->processRating($chatId, str_replace('RATE_', '', $data));
         
         Http::post("{$this->apiUrl}/answerCallbackQuery", ['callback_query_id' => $query['id']]);
+    }
+
+    protected function processRating($chatId, $data)
+    {
+        // Format: {transaction_id}_{stars}
+        $parts = explode('_', $data);
+        if (count($parts) < 2) return;
+        
+        $txId = $parts[0];
+        $stars = $parts[1];
+
+        Rating::updateOrCreate(['transaction_id' => $txId], ['stars' => $stars]);
+
+        $msg = "💖 <b>TERIMA KASIH!</b>\n\nAnda memberikan rating ⭐ {$stars} untuk pembelian ini. Dukungan Anda sangat berarti bagi kami!";
+        $this->sendMessage($chatId, $msg);
     }
 
     protected function sendWelcome($chatId)

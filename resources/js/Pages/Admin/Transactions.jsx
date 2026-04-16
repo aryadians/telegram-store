@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import { Search, FileText, FileSpreadsheet, Trash2, Square, CheckSquare } from 'lucide-react';
+import { Search, FileText, FileSpreadsheet, Trash2, Square, CheckSquare, Eye } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function Transactions({ auth, transactions = { data: [], links: [] }, filters = {} }) {
@@ -31,6 +31,32 @@ export default function Transactions({ auth, transactions = { data: [], links: [
 
     const exportData = (type) => {
         window.location.href = route('admin.transactions.export', { type, ids: selectedIds.join(',') });
+    };
+
+    const showDetails = (tx) => {
+        Swal.fire({
+            title: 'Audit Detail',
+            html: `
+                <div class="text-left p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                    <div>
+                        <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Product</div>
+                        <div class="font-bold text-slate-800">${tx.product?.name || 'Unknown'}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Amount</div>
+                        <div class="font-bold text-slate-800">Rp ${Number(tx.amount).toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Delivered Data</div>
+                        <div class="p-3 bg-white border border-slate-200 rounded-xl font-mono text-xs text-indigo-600 mt-2 break-all">
+                            ${tx.digital_asset?.data_detail || 'No data delivered'}
+                        </div>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-[2.5rem]' }
+        });
     };
 
     const handleBulkDelete = () => {
@@ -108,6 +134,7 @@ export default function Transactions({ auth, transactions = { data: [], links: [
                                     <th className="py-4 px-4">Product</th>
                                     <th className="py-4 px-4">Revenue</th>
                                     <th className="py-4 px-4 text-center">Status</th>
+                                    <th className="py-4 px-4 text-center">View</th>
                                     <th className="py-4 px-6 text-right">Date</th>
                                 </tr>
                             </thead>
@@ -128,11 +155,16 @@ export default function Transactions({ auth, transactions = { data: [], links: [
                                         <td className="py-4 px-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-wider ${tx.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>{tx.status}</span>
                                         </td>
+                                        <td className="py-4 px-4 text-center">
+                                            {tx.status === 'PAID' && (
+                                                <button onClick={() => showDetails(tx)} className="p-2 text-slate-400 hover:text-indigo-600 transition"><Eye className="w-4 h-4 mx-auto" /></button>
+                                            )}
+                                        </td>
                                         <td className="py-4 px-6 text-right text-[10px] font-bold text-slate-400 uppercase">{new Date(tx.created_at).toLocaleDateString()}</td>
                                     </tr>
                                 ))}
                                 {transactions.data?.length === 0 && (
-                                    <tr><td colSpan="6" className="py-20 text-center text-slate-300 text-xs italic uppercase tracking-widest font-black">No transaction logs found</td></tr>
+                                    <tr><td colSpan="7" className="py-20 text-center text-slate-300 text-xs italic uppercase tracking-widest font-black">No transaction logs found</td></tr>
                                 )}
                             </tbody>
                         </table>

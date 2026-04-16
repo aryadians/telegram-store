@@ -69,7 +69,7 @@ export default function Dashboard({ auth, products = [], recentTransactions = []
                     <StatCard label="Revenue" value={`Rp${Number(stats.total_revenue || 0).toLocaleString()}`} icon={TrendingUp} color="text-indigo-600" bg="bg-indigo-50" variant={itemVariants} />
                     <StatCard label="Avg. Order" value={`Rp${Number(stats.aov || 0).toLocaleString()}`} icon={ShoppingCart} color="text-blue-600" bg="bg-blue-50" variant={itemVariants} />
                     <StatCard label="Total Users" value={stats.total_users || 0} icon={Users} color="text-emerald-600" bg="bg-emerald-50" subValue={`+${stats.new_users_today || 0} today`} variant={itemVariants} />
-                    <StatCard label="Pending" value={stats.pending_orders || 0} icon={Clock} color="text-amber-600" bg="bg-amber-50" variant={itemVariants} />
+                    <StatCard label="Avg Rating" value={`⭐ ${Number(stats.avg_rating || 0).toFixed(1)}`} icon={Sparkles} color="text-amber-600" bg="bg-amber-50" variant={itemVariants} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

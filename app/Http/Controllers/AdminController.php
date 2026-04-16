@@ -56,6 +56,7 @@ class AdminController extends Controller
             'aov' => Transaction::where('status', 'PAID')->count() > 0 
                      ? (float) Transaction::where('status', 'PAID')->avg('amount') 
                      : 0,
+            'avg_rating' => \App\Models\Rating::avg('stars') ?: 0,
         ];
 
         return Inertia::render('Admin/Dashboard', [
@@ -69,7 +70,7 @@ class AdminController extends Controller
 
     public function transactions(Request $request)
     {
-        $query = Transaction::with('product')->latest();
+        $query = Transaction::with(['product', 'digitalAsset'])->latest();
         if ($request->search) {
             $query->where('reference', 'like', "%{$request->search}%")
                   ->orWhere('chat_id', 'like', "%{$request->search}%");
