@@ -6,9 +6,17 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TelegramUser;
+use App\Models\Voucher;
+use App\Models\Setting;
+use App\Models\Deposit;
+use App\Models\DigitalAsset;
+use App\Models\Favorite;
+use App\Models\RestockNotification;
+use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class TelegramController extends Controller
 {
@@ -30,40 +38,48 @@ class TelegramController extends Controller
             $text = $update['message']['text'] ?? '';
             $from = $update['message']['from'];
 
-            TelegramUser::updateOrCreate(
+            $user = TelegramUser::updateOrCreate(
                 ['chat_id' => $chatId],
-                [
-                    'username' => $from['username'] ?? null,
-                    'first_name' => $from['first_name'] ?? null,
-                ]
+                ['username' => $from['username'] ?? null, 'first_name' => $from['first_name'] ?? null]
             );
 
-            if ($text === '/start') {
-                $this->sendWelcome($chatId);
-            } elseif ($text === '/history') {
-                $this->sendHistory($chatId);
-            } elseif ($text === '/status') {
-                $this->sendStatus($chatId);
-            } elseif ($text === '/help') {
-                $this->sendHelp($chatId);
+            // Command & Menu Router
+            switch (true) {
+                case str_starts_with($text, '/start'): $this->sendWelcome($chatId); break;
+                case $text === '🛍️ Order Produk' || $text === '/order': $this->sendCategories($chatId); break;
+                case $text === '💳 Cek Pembayaran' || $text === '/check': $this->sendStatus($chatId); break;
+                case $text === '📋 Panduan Order' || $text === '/guide': $this->sendGuide($chatId); break;
+                case $text === '📜 Riwayat Transaksi' || $text === '/history': $this->sendHistory($chatId); break;
+                case $text === '🔄 Order Lagi' || $text === '/reorder': $this->sendHistory($chatId, true); break;
+                case $text === '🔍 Cari Produk' || $text === '/search': $this->promptSearch($chatId); break;
+                case $text === '⭐ Favorit' || $text === '/favorites': $this->sendFavorites($chatId); break;
+                case $text === '👤 Profil' || $text === '/profile': $this->sendProfile($chatId); break;
+                case $text === '📊 Rapor' || $text === '/stats': $this->sendStats($chatId); break;
+                case $text === '💰 Deposit' || $text === '/deposit': $this->promptDeposit($chatId); break;
+                case $text === '📡 Live Center' || $text === '/live': $this->sendLiveCenter($chatId); break;
+                case $text === '🆘 Bantuan' || $text === '/help': $this->sendHelp($chatId); break;
+                case $text === '❓ FAQ' || $text === '/faq': $this->sendFaqs($chatId); break;
+                case $text === '🔔 Notif Restock' || $text === '/restock': $this->sendRestockMenu($chatId); break;
+                case $text === '🛡️ Garansi' || $text === '/warranty': $this->sendWarranty($chatId); break;
+                case $text === '💬 WA Admin' || $text === '/admin': $this->sendWaLink($chatId); break;
+                
+                default: 
+                    if (!str_starts_with($text, '/')) {
+                        $this->executeSearch($chatId, $text);
+                    }
+                    break;
             }
         } elseif (isset($update['callback_query'])) {
             $chatId = $update['callback_query']['message']['chat']['id'];
             $data = $update['callback_query']['data'];
 
-            if ($data === 'SHOW_CATEGORIES') {
-                $this->sendCategories($chatId);
-            } elseif ($data === 'HISTORY_CB') {
-                $this->sendHistory($chatId);
-            } elseif ($data === 'HELP_CB') {
-                $this->sendHelp($chatId);
-            } elseif ($data === 'START_CB') {
-                $this->sendWelcome($chatId);
-            } elseif (str_starts_with($data, 'CAT_')) {
-                $this->sendProductsByCategory($chatId, str_replace('CAT_', '', $data));
-            } elseif (str_starts_with($data, 'BUY_')) {
-                $this->processOrder($chatId, str_replace('BUY_', '', $data));
-            }
+            if ($data === 'SHOW_CATEGORIES') $this->sendCategories($chatId);
+            elseif ($data === 'START_CB') $this->sendWelcome($chatId);
+            elseif ($data === 'CAT_ALL') $this->sendProductsByCategory($chatId, 'ALL');
+            elseif (str_starts_with($data, 'CAT_')) $this->sendProductsByCategory($chatId, str_replace('CAT_', '', $data));
+            elseif (str_starts_with($data, 'BUY_')) $this->confirmPurchase($chatId, str_replace('BUY_', '', $data));
+            elseif (str_starts_with($data, 'PAY_QRIS_')) $this->processOrder($chatId, str_replace('PAY_QRIS_', '', $data));
+            elseif (str_starts_with($data, 'DEP_')) $this->processDeposit($chatId, str_replace('DEP_', '', $data));
         }
 
         return response()->json(['status' => 'ok']);
@@ -71,165 +87,120 @@ class TelegramController extends Controller
 
     protected function sendWelcome($chatId)
     {
-        $text = "✨ <b>SELAMAT DATANG DI ZONA AKUN PREMIUM</b> ✨\n\n";
-        $text .= "Solusi otomatis untuk kebutuhan <b>Akun Premium & Digital Assets</b> Anda. Transaksi aman, cepat, dan instan 24/7.\n\n";
-        $text .= "━━━━━━━━━━━━━━━━━━━━\n";
-        $text .= "📱 <b>Menu Navigasi:</b>";
+        $storeName = Setting::get('store_name', 'Zona Akun Premium');
+        $welcomeMsg = Setting::get('welcome_message', "Solusi otomatis untuk kebutuhan Akun Premium & Digital Assets Anda.");
 
-        $buttons = [
-            [['text' => '🛍️ Mulai Berbelanja', 'callback_data' => 'SHOW_CATEGORIES']],
-            [
-                ['text' => '📜 Riwayat', 'callback_data' => 'HISTORY_CB'],
-                ['text' => '❓ Bantuan', 'callback_data' => 'HELP_CB']
-            ],
+        $text = "✨ <b>" . strtoupper($storeName) . "</b> ✨\n\n";
+        $text .= "{$welcomeMsg}\n\n";
+        $text .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $text .= "📱 <b>Pilih Menu:</b>";
+
+        $keyboard = [
+            ['🛍️ Order Produk', '💳 Cek Pembayaran'],
+            ['🔍 Cari Produk', '⭐ Favorit'],
+            ['👤 Profil', '📊 Rapor', '💰 Deposit'],
+            ['📜 Riwayat Transaksi', '🔄 Order Lagi'],
+            ['📋 Panduan Order', '🛡️ Garansi', '❓ FAQ'],
+            ['🆘 Bantuan', '📡 Live Center'],
+            ['💬 WA Admin', '🔔 Notif Restock']
         ];
 
-        $this->sendMessage($chatId, $text, ['inline_keyboard' => $buttons]);
+        $replyMarkup = [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false
+        ];
+
+        $bannerUrl = Setting::get('bot_banner_url');
+        if ($bannerUrl) {
+            $this->sendPhoto($chatId, $bannerUrl, $text, $replyMarkup);
+        } else {
+            $this->sendMessage($chatId, $text, $replyMarkup);
+        }
     }
+
+    // --- FITUR REAL-TIME SYNC ---
 
     protected function sendCategories($chatId)
     {
         $categories = Category::all();
         $buttons = [];
-
         foreach ($categories as $cat) {
             $buttons[] = [['text' => "📁 {$cat->name}", 'callback_data' => "CAT_{$cat->id}"]];
         }
         $buttons[] = [['text' => "🌐 Semua Produk", 'callback_data' => "CAT_ALL"]];
-        $buttons[] = [['text' => "⬅️ Kembali", 'callback_data' => 'START_CB']];
+        $buttons[] = [['text' => "🔍 Cari Produk", 'callback_data' => "SEARCH_CB"]];
 
-        $this->sendMessage($chatId, "🗂️ <b>PILIH KATEGORI PRODUK</b>\n\nSilakan pilih kategori yang Anda inginkan:", ['inline_keyboard' => $buttons]);
+        $this->sendMessage($chatId, "🗂️ <b>PILIH KATEGORI PRODUK</b>\n\nSilakan pilih kategori yang tersedia di bawah ini:", ['inline_keyboard' => $buttons]);
     }
 
-    protected function sendProductsByCategory($chatId, $catId)
+    protected function executeSearch($chatId, $query)
     {
-        $query = Product::where('is_active', true);
-        if ($catId !== 'ALL') $query->where('category_id', $catId);
-        
-        $products = $query->get();
+        $products = Product::where('is_active', true)->where('name', 'like', "%{$query}%")->get();
+        if ($products->isEmpty()) {
+            $this->sendMessage($chatId, "❌ Produk '<b>{$query}</b>' tidak ditemukan. Coba kata kunci lain.");
+            return;
+        }
         $buttons = [];
-
-        foreach ($products as $product) {
-            $stock = $product->availableAssetsCount();
+        foreach ($products as $p) {
+            $stock = $p->availableAssetsCount();
             if ($stock > 0) {
-                $buttons[] = [[
-                    'text' => "🔹 {$product->name} • Rp " . number_format($product->price, 0, ',', '.') . " (Stok: {$stock})",
-                    'callback_data' => "BUY_{$product->id}"
-                ]];
+                $buttons[] = [['text' => "🔹 {$p->name} • Rp " . number_format($p->price), 'callback_data' => "BUY_{$p->id}"]];
             }
         }
-
-        if (empty($buttons)) {
-            $this->sendMessage($chatId, "⚠️ <b>MAAF</b>\n\nSaat ini produk di kategori ini sedang kosong. Silakan cek kategori lain.");
-            return;
-        }
-
-        $buttons[] = [['text' => "⬅️ Kembali ke Kategori", 'callback_data' => 'SHOW_CATEGORIES']];
-
-        $this->sendMessage($chatId, "🛍️ <b>DAFTAR PRODUK TERSEDIA</b>\n\nKlik pada nama produk untuk melakukan pemesanan:", ['inline_keyboard' => $buttons]);
+        $this->sendMessage($chatId, "🔍 <b>HASIL PENCARIAN '{$query}':</b>", ['inline_keyboard' => $buttons]);
     }
 
-    protected function processOrder($chatId, $productId)
+    protected function sendProfile($chatId)
     {
-        $product = Product::find($productId);
-        if (!$product || $product->availableAssetsCount() <= 0) {
-            $this->sendMessage($chatId, "❌ <b>Gagal:</b> Stok produk baru saja habis.");
-            return;
-        }
-
-        $loadingMsg = $this->sendMessage($chatId, "⏳ <b>Menyiapkan pesanan Anda...</b>");
-
-        $duitku = DuitkuController::createTransaction($product, $chatId);
-
-        if (isset($duitku['qrString']) || isset($duitku['paymentUrl'])) {
-            Transaction::create([
-                'reference' => $duitku['merchantOrderId'],
-                'chat_id' => $chatId,
-                'product_id' => $product->id,
-                'amount' => $product->price,
-                'status' => 'UNPAID'
-            ]);
-
-            if (isset($loadingMsg['result']['message_id'])) {
-                Http::post("{$this->apiUrl}/deleteMessage", ['chat_id' => $chatId, 'message_id' => $loadingMsg['result']['message_id']]);
-            }
-
-            if (isset($duitku['qrString'])) {
-                $qrImageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($duitku['qrString']);
-                
-                $caption = "📋 <b>RINCIAN PESANAN</b>\n";
-                $caption .= "━━━━━━━━━━━━━━━━━━━━\n";
-                $caption .= "📦 <b>Produk:</b> {$product->name}\n";
-                $caption .= "💰 <b>Total:</b> <code>Rp " . number_format($product->price, 0, ',', '.') . "</code>\n";
-                $caption .= "🆔 <b>Order ID:</b> <code>" . $duitku['merchantOrderId'] . "</code>\n";
-                $caption .= "━━━━━━━━━━━━━━━━━━━━\n\n";
-                $caption .= "✅ <b>INSTRUKSI PEMBAYARAN:</b>\n";
-                $caption .= "1. Scan QRIS di atas melalui aplikasi bank/e-wallet Anda.\n";
-                $caption .= "2. Pastikan nominal sesuai dengan tagihan.\n";
-                $caption .= "3. Akun akan dikirim <b>Instan</b> setelah bayar.";
-
-                Http::post("{$this->apiUrl}/sendPhoto", [
-                    'chat_id' => $chatId,
-                    'photo' => $qrImageUrl,
-                    'caption' => $caption,
-                    'parse_mode' => 'HTML'
-                ]);
-            } else {
-                $text = "📋 <b>RINCIAN PESANAN</b>\n";
-                $text .= "━━━━━━━━━━━━━━━━━━━━\n";
-                $text .= "📦 <b>Produk:</b> {$product->name}\n";
-                $text .= "💰 <b>Total:</b> <code>Rp " . number_format($product->price, 0, ',', '.') . "</code>\n";
-                $text .= "━━━━━━━━━━━━━━━━━━━━\n\n";
-                $text .= "Silakan klik tombol di bawah untuk membayar:";
-
-                $this->sendMessage($chatId, $text, [
-                    'inline_keyboard' => [[['text' => '💳 Bayar Sekarang', 'url' => $duitku['paymentUrl']]]]
-                ]);
-            }
-        } else {
-            $this->sendMessage($chatId, "❌ <b>Error:</b> Gagal membuat transaksi. Hubungi @Admin.");
-        }
-    }
-
-    protected function sendHistory($chatId)
-    {
-        $transactions = Transaction::where('chat_id', $chatId)->where('status', 'PAID')->with(['product', 'digitalAsset'])->latest()->take(5)->get();
-
-        if ($transactions->isEmpty()) {
-            $this->sendMessage($chatId, "📜 <b>RIWAYAT KOSONG</b>\n\nAnda belum pernah melakukan pembelian di store ini.");
-            return;
-        }
-
-        $text = "📜 <b>5 RIWAYAT PEMBELIAN TERAKHIR</b>\n\n";
-        foreach ($transactions as $tx) {
-            $text .= "📅 " . $tx->created_at->format('d/m/Y H:i') . "\n";
-            $text .= "📦 <b>" . $tx->product->name . "</b>\n";
-            $text .= "🔑 Data: <code>" . ($tx->digitalAsset->data_detail ?? 'N/A') . "</code>\n";
-            $text .= "━━━━━━━━━━━━━━━━━━━━\n";
-        }
-
+        $user = TelegramUser::where('chat_id', $chatId)->first();
+        $text = "👤 <b>PROFIL SULTAN</b>\n";
+        $text .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $text .= "📛 <b>Nama:</b> {$user->first_name}\n";
+        $text .= "💰 <b>Saldo:</b> <code>Rp " . number_format($user->balance) . "</code>\n";
+        $text .= "🔗 <b>Referral:</b> <code>{$user->referral_code}</code>\n";
+        $text .= "━━━━━━━━━━━━━━━━━━━━\n\n";
+        $text .= "🎁 <b>Link Referral:</b>\n<code>https://t.me/zona_akun_premium_bot?start=REF_{$user->chat_id}</code>";
+        
         $this->sendMessage($chatId, $text);
     }
 
-    protected function sendHelp($chatId)
+    protected function sendStats($chatId)
     {
-        $text = "❓ <b>PUSAT BANTUAN</b>\n\n";
-        $text .= "Mengalami kendala? Admin kami siap membantu Anda.\n\n";
-        $text .= "👤 <b>CS Telegram:</b> @AdminStore\n";
-        $text .= "🕒 <b>Jam Operasional:</b> 08:00 - 22:00 WIB\n\n";
-        $text .= "<b>Panduan Singkat:</b>\n";
-        $text .= "• Produk dikirim otomatis via chat ini.\n";
-        $text .= "• Masa garansi mengikuti paket yang dibeli.\n";
-        $text .= "• Jangan memberikan Order ID ke siapapun.";
-
+        $totalPaid = Transaction::where('chat_id', $chatId)->where('status', 'PAID')->sum('amount');
+        $totalCount = Transaction::where('chat_id', $chatId)->where('status', 'PAID')->count();
+        
+        $text = "📊 <b>RAPOR BELANJA</b>\n";
+        $text .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $text .= "💸 <b>Total Belanja:</b> <code>Rp " . number_format($totalPaid) . "</code>\n";
+        $text .= "📦 <b>Total Akun:</b> <code>{$totalCount} Akun</code>\n";
+        $text .= "🎖️ <b>Status:</b> " . ($totalPaid > 500000 ? "💎 VIP Member" : "⭐ Regular Member");
+        
         $this->sendMessage($chatId, $text);
     }
 
+    protected function promptDeposit($chatId)
+    {
+        $text = "💰 <b>ISI SALDO (TOP UP)</b>\n\nSilakan pilih nominal deposit Anda:";
+        $buttons = [
+            [['text' => 'Rp 10.000', 'callback_data' => 'DEP_10000'], ['text' => 'Rp 25.000', 'callback_data' => 'DEP_25000']],
+            [['text' => 'Rp 50.000', 'callback_data' => 'DEP_50000'], ['text' => 'Rp 100.000', 'callback_data' => 'DEP_100000']],
+        ];
+        $this->sendMessage($chatId, $text, ['inline_keyboard' => $buttons]);
+    }
+
+    // Helper Methods
     protected function sendMessage($chatId, $text, $replyMarkup = null)
     {
         $payload = ['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'HTML'];
         if ($replyMarkup) $payload['reply_markup'] = json_encode($replyMarkup);
-        $response = Http::post("{$this->apiUrl}/sendMessage", $payload);
-        return $response->json();
+        return Http::post("{$this->apiUrl}/sendMessage", $payload)->json();
+    }
+
+    protected function sendPhoto($chatId, $photo, $caption, $replyMarkup = null)
+    {
+        $payload = ['chat_id' => $chatId, 'photo' => $photo, 'caption' => $caption, 'parse_mode' => 'HTML'];
+        if ($replyMarkup) $payload['reply_markup'] = json_encode($replyMarkup);
+        return Http::post("{$this->apiUrl}/sendPhoto", $payload)->json();
     }
 }

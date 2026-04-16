@@ -16,8 +16,8 @@ export default function Welcome({ auth }) {
             {/* Navbar */}
             <nav className="relative z-10 flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
                 <div className="flex items-center gap-2">
-                    <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200">
-                        <ShoppingCart className="w-5 h-5 text-white" />
+                    <div className="w-12 h-12 p-1 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                        <img src="/logostore.png" className="w-full h-full object-cover" alt="Logo" />
                     </div>
                     <span className="font-black text-xl tracking-tighter">Zona<span className="text-indigo-600">Akun</span></span>
                 </div>

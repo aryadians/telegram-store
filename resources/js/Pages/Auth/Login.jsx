@@ -37,8 +37,8 @@ export default function Login({ status, canResetPassword }) {
                 className="w-full max-w-md"
             >
                 <div className="text-center mb-10">
-                    <div className="inline-flex p-4 bg-indigo-600 rounded-[2rem] shadow-2xl shadow-indigo-200 mb-6">
-                        <ShoppingBag className="w-8 h-8 text-white" />
+                    <div className="inline-flex w-24 h-24 p-2 bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200 mb-6 overflow-hidden">
+                        <img src="/logostore.png" className="w-full h-full object-cover rounded-[1.5rem]" alt="Logo" />
                     </div>
                     <h1 className="text-3xl font-black tracking-tight text-gray-900">Welcome Back</h1>
                     <p className="text-gray-500 font-medium mt-2">Manage your automated store with ease.</p>

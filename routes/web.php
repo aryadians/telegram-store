@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/admin/products', [AdminController::class, 'products'])->name('admin.products');
     Route::post('/admin/products', [AdminController::class, 'storeProduct'])->name('admin.products.store');
+    Route::put('/admin/products/{product}', [AdminController::class, 'updateProduct'])->name('admin.products.update');
     Route::patch('/admin/products/{product}/status', [AdminController::class, 'updateProductStatus'])->name('admin.products.status');
     Route::delete('/admin/products/{product}', [AdminController::class, 'destroyProduct'])->name('admin.products.destroy');
 
@@ -35,6 +36,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/admin/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
     Route::get('/admin/transactions/export', [AdminController::class, 'exportTransactions'])->name('admin.transactions.export');
+    Route::post('/admin/transactions/bulk-delete', [AdminController::class, 'bulkDeleteTransactions'])->name('admin.transactions.bulk-delete');
+
+    Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::post('/admin/users/{user}/balance', [AdminController::class, 'adjustBalance'])->name('admin.users.balance');
+
+    Route::get('/admin/vouchers', [AdminController::class, 'vouchers'])->name('admin.vouchers');
+    Route::post('/admin/vouchers', [AdminController::class, 'storeVoucher'])->name('admin.vouchers.store');
+    Route::delete('/admin/vouchers/{voucher}', [AdminController::class, 'destroyVoucher'])->name('admin.vouchers.destroy');
+
+    Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
+    Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+
+    Route::get('/admin/faqs', [AdminController::class, 'faqs'])->name('admin.faqs');
+    Route::post('/admin/faqs', [AdminController::class, 'storeFaq'])->name('admin.faqs.store');
+    Route::delete('/admin/faqs/{faq}', [AdminController::class, 'destroyFaq'])->name('admin.faqs.destroy');
 });
 
 Route::middleware('auth')->group(function () {
