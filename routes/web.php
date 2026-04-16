@@ -30,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/admin/broadcast', [AdminController::class, 'broadcastPage'])->name('admin.broadcast');
     Route::post('/admin/broadcast', [AdminController::class, 'sendBroadcast'])->name('admin.broadcast.send');
+
+    Route::get('/admin/logs', [AdminController::class, 'logs'])->name('admin.logs');
+    Route::post('/admin/products/bulk-price', [AdminController::class, 'bulkPriceUpdate'])->name('admin.products.bulk-price');
     
     Route::get('/admin/stock-opname', [AdminController::class, 'stockOpname'])->name('admin.stock-opname');
     Route::post('/admin/stock-opname', [AdminController::class, 'bulkInsertAssets'])->name('admin.stock-opname.store');

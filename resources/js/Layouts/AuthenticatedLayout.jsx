@@ -33,6 +33,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: 'Vouchers', href: route('admin.vouchers'), icon: Ticket, active: route().current('admin.vouchers') },
         { name: 'FAQ Manager', href: route('admin.faqs'), icon: Ticket, active: route().current('admin.faqs') },
         { name: 'System Core', href: route('admin.settings'), icon: Settings, active: route().current('admin.settings') },
+        { name: 'System Logs', href: route('admin.logs'), icon: Terminal, active: route().current('admin.logs') },
         { name: 'Transactions', href: route('admin.transactions'), icon: History, active: route().current('admin.transactions') },
     ];
 
