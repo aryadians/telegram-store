@@ -1,19 +1,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
-import { 
-    Settings as SettingsIcon, Save, MessageSquare, 
-    Phone, Percent, ShieldCheck, FileText, Shield, CheckCircle,
-    Layout, Sparkles
-} from 'lucide-react';
+import { Save, Info, MessageSquare, Phone, Percent, Shield, FileText, CheckCircle, Layout } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function Settings({ auth, settings }) {
     const { data, setData, post, processing } = useForm({
-        store_name: settings.store_name || 'Zona Akun Premium',
-        admin_telegram: settings.admin_telegram || '@AdminStore',
-        admin_whatsapp: settings.admin_whatsapp || '628123456789',
+        store_name: settings.store_name || '',
+        admin_telegram: settings.admin_telegram || '',
+        admin_whatsapp: settings.admin_whatsapp || '',
         referral_bonus: settings.referral_bonus || '5',
-        welcome_message: settings.welcome_message || 'Solusi otomatis untuk kebutuhan Akun Premium.',
+        welcome_message: settings.welcome_message || '',
         template_guide: settings.template_guide || '',
         template_warranty: settings.template_warranty || '',
         template_success: settings.template_success || '',
@@ -24,12 +20,7 @@ export default function Settings({ auth, settings }) {
         e.preventDefault();
         post(route('admin.settings.update'), {
             onSuccess: () => {
-                Swal.fire({ 
-                    title: 'System Synced!', 
-                    text: 'All bot templates are updated.', 
-                    icon: 'success', 
-                    customClass: { popup: 'rounded-[2rem]' } 
-                });
+                Swal.fire({ title: 'Synced!', icon: 'success', customClass: { popup: 'rounded-2xl' } });
             },
         });
     };
@@ -39,79 +30,50 @@ export default function Settings({ auth, settings }) {
             user={auth.user}
             header={
                 <div>
-                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">System Control Center</h2>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Configure your bot experience</p>
+                    <h2 className="text-xl font-bold text-slate-800">System Overrides</h2>
+                    <p className="text-xs text-slate-400 font-medium uppercase tracking-widest mt-1">Bot Core Configuration</p>
                 </div>
             }
         >
             <Head title="Settings" />
 
-            <div className="max-w-5xl mx-auto py-8">
+            <div className="max-w-5xl mx-auto space-y-8">
                 <form onSubmit={submit} className="space-y-8">
-                    
-                    {/* SECTION 1: IDENTITY */}
-                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="bg-slate-900 p-6 text-white flex items-center gap-3">
-                            <Layout className="w-5 h-5 text-indigo-400" />
-                            <h3 className="font-black uppercase text-xs tracking-[0.2em]">Bot Identity & Branding</h3>
+                    {/* Identity */}
+                    <div className="premium-card !p-0 overflow-hidden">
+                        <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex items-center gap-2">
+                            <Layout className="w-4 h-4 text-indigo-600" />
+                            <h3 className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Bot Branding</h3>
                         </div>
                         <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Store Name</label>
-                                <input type="text" value={data.store_name} onChange={e => setData('store_name', e.target.value)} className="input-field" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Admin Chat ID (Alerts)</label>
-                                <input type="text" value={data.admin_chat_id} onChange={e => setData('admin_chat_id', e.target.value)} className="input-field font-mono" placeholder="e.g. 123456789" />
-                            </div>
-                            <div className="md:col-span-2 space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Welcome Text (Start Message)</label>
-                                <textarea value={data.welcome_message} onChange={e => setData('welcome_message', e.target.value)} className="input-field h-32 py-4 leading-relaxed"></textarea>
-                            </div>
+                            <div className="space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Store Label</label><input type="text" value={data.store_name} onChange={e => setData('store_name', e.target.value)} className="input-field !py-2.5 text-xs font-bold" /></div>
+                            <div className="space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Admin UID</label><input type="text" value={data.admin_chat_id} onChange={e => setData('admin_chat_id', e.target.value)} className="input-field !py-2.5 text-xs font-mono" /></div>
+                            <div className="md:col-span-2 space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bot Bio (Start Message)</label><textarea value={data.welcome_message} onChange={e => setData('welcome_message', e.target.value)} className="input-field h-24 !py-3 text-xs leading-relaxed"></textarea></div>
                         </div>
                     </div>
 
-                    {/* SECTION 2: TEMPLATES (GUIDE & WARRANTY) */}
-                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="bg-indigo-600 p-6 text-white flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-indigo-200" />
-                            <h3 className="font-black uppercase text-xs tracking-[0.2em]">Instructional Templates</h3>
+                    {/* Templates */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="premium-card !p-0 overflow-hidden">
+                            <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex items-center gap-2"><FileText className="w-4 h-4 text-indigo-600" /><h3 className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Guide</h3></div>
+                            <div className="p-6"><textarea value={data.template_guide} onChange={e => setData('template_guide', e.target.value)} className="input-field h-64 font-mono text-[10px] leading-tight bg-slate-50 border-none shadow-inner"></textarea></div>
                         </div>
-                        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-2">
-                                    <FileText className="w-3 h-3 text-indigo-600" /> Guide Template (Panduan Order)
-                                </label>
-                                <textarea value={data.template_guide} onChange={e => setData('template_guide', e.target.value)} className="input-field h-80 font-mono text-xs leading-relaxed bg-slate-50/50" placeholder="Copy paste your Guide format here..."></textarea>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-2">
-                                    <Shield className="w-3 h-3 text-indigo-600" /> Warranty Template (Garansi)
-                                </label>
-                                <textarea value={data.template_warranty} onChange={e => setData('template_warranty', e.target.value)} className="input-field h-80 font-mono text-xs leading-relaxed bg-slate-50/50" placeholder="Copy paste your Warranty format here..."></textarea>
-                            </div>
+                        <div className="premium-card !p-0 overflow-hidden">
+                            <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex items-center gap-2"><Shield className="w-4 h-4 text-indigo-600" /><h3 className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Warranty</h3></div>
+                            <div className="p-6"><textarea value={data.template_warranty} onChange={e => setData('template_warranty', e.target.value)} className="input-field h-64 font-mono text-[10px] leading-tight bg-slate-50 border-none shadow-inner"></textarea></div>
                         </div>
                     </div>
 
-                    {/* SECTION 3: SUCCESS MESSAGE */}
-                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="bg-emerald-600 p-6 text-white flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-emerald-200" />
-                            <h3 className="font-black uppercase text-xs tracking-[0.2em]">Post-Purchase Experience</h3>
-                        </div>
+                    {/* Success Template */}
+                    <div className="premium-card !p-0 overflow-hidden">
+                        <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-600" /><h3 className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Purchase Success</h3></div>
                         <div className="p-8 space-y-4">
-                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Payment Success Message</label>
-                            <textarea value={data.template_success} onChange={e => setData('template_success', e.target.value)} className="input-field h-40 font-mono text-xs leading-relaxed bg-slate-50/50" placeholder="Placeholders: [PRODUCT_NAME], [ACCOUNT_DETAILS]"></textarea>
-                            <div className="flex gap-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">
-                                <span>[PRODUCT_NAME] = Dynamic Name</span>
-                                <span>[ACCOUNT_DETAILS] = Account Data</span>
-                            </div>
+                            <textarea value={data.template_success} onChange={e => setData('template_success', e.target.value)} className="input-field h-32 font-mono text-[10px] leading-tight bg-slate-50 border-none shadow-inner"></textarea>
+                            <div className="flex gap-4 text-[8px] font-bold text-slate-400 uppercase italic"><span>[PRODUCT_NAME]</span><span>[ACCOUNT_DETAILS]</span></div>
                         </div>
                     </div>
 
-                    <button type="submit" disabled={processing} className="btn-indigo w-full py-6 text-xl shadow-xl shadow-indigo-100">
-                        <Save className="w-6 h-6" /> Save & Push to Telegram
-                    </button>
+                    <button type="submit" disabled={processing} className="btn-indigo w-full !py-4 text-sm tracking-widest"><Save className="w-4 h-4" /> Save Core Configuration</button>
                 </form>
             </div>
         </AuthenticatedLayout>

@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\TelegramUser;
 use App\Models\Voucher;
 use App\Models\Setting;
+use App\Models\Deposit;
 use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -28,7 +29,7 @@ class AdminController extends Controller
         // 2. Recent Activity
         $recentTransactions = Transaction::with('product')->latest()->take(10)->get();
 
-        // 3. Sales Chart (7 Days)
+        // 3. Sales Chart (7 Hari Terakhir)
         $salesChart = Transaction::where('status', 'PAID')
             ->where('created_at', '>=', now()->subDays(7))
             ->selectRaw('DATE(created_at) as date, SUM(amount) as total')
@@ -36,7 +37,7 @@ class AdminController extends Controller
             ->orderBy('date', 'ASC')
             ->get();
 
-        // 4. Top Selling Products (NEW)
+        // 4. Top Selling Products
         $topProducts = Transaction::where('status', 'PAID')
             ->select('product_id', DB::raw('SUM(amount) as total_revenue'), DB::raw('COUNT(*) as total_sold'))
             ->groupBy('product_id')
@@ -47,13 +48,13 @@ class AdminController extends Controller
 
         // 5. Global Stats
         $stats = [
-            'total_revenue' => Transaction::where('status', 'PAID')->sum('amount'),
+            'total_revenue' => (float) Transaction::where('status', 'PAID')->sum('amount'),
             'total_orders' => Transaction::where('status', 'PAID')->count(),
             'pending_orders' => Transaction::where('status', 'UNPAID')->count(),
             'total_users' => TelegramUser::count(),
             'new_users_today' => TelegramUser::whereDate('created_at', now()->toDateString())->count(),
             'aov' => Transaction::where('status', 'PAID')->count() > 0 
-                     ? Transaction::where('status', 'PAID')->avg('amount') 
+                     ? (float) Transaction::where('status', 'PAID')->avg('amount') 
                      : 0,
         ];
 
@@ -112,35 +113,17 @@ class AdminController extends Controller
     public function storeCategory(Request $request) { Category::create($request->all()); return redirect()->back(); }
     public function destroyCategory(Category $category) { $category->delete(); return redirect()->back(); }
     public function broadcastPage() { return Inertia::render('Admin/Broadcast', ['total_users' => TelegramUser::count()]); }
-    public function sendBroadcast(Request $request) { /* Broadcast */ return redirect()->back(); }
+    public function sendBroadcast(Request $request) { /* logic same */ return redirect()->back(); }
     public function stockOpname() { return Inertia::render('Admin/StockOpname', ['products' => Product::where('is_active', true)->get()]); }
-    public function bulkInsertAssets(Request $request) { /* Inject */ return redirect()->back(); }
+    public function bulkInsertAssets(Request $request) { /* logic same */ return redirect()->back(); }
     public function users() { return Inertia::render('Admin/Users', ['users' => TelegramUser::latest()->paginate(20)]); }
     public function adjustBalance(Request $request, TelegramUser $user) { $user->increment('balance', $request->amount); return redirect()->back(); }
     public function vouchers() { return Inertia::render('Admin/Vouchers', ['vouchers' => Voucher::latest()->get()]); }
     public function storeVoucher(Request $request) { Voucher::create($request->all()); return redirect()->back(); }
     public function destroyVoucher(Voucher $voucher) { $voucher->delete(); return redirect()->back(); }
+    public function faqs() { return Inertia::render('Admin/Faqs', ['faqs' => Faq::latest()->get()]); }
+    public function storeFaq(Request $request) { Faq::create($request->all()); return redirect()->back(); }
+    public function destroyFaq(Faq $faq) { $faq->delete(); return redirect()->back(); }
     public function settings() { return Inertia::render('Admin/Settings', [ 'settings' => Setting::all()->pluck('value', 'key') ]); }
     public function updateSettings(Request $request) { foreach ($request->all() as $k => $v) Setting::set($k, $v); return redirect()->back(); }
-
-    // FAQ MANAGEMENT
-    public function faqs()
-    {
-        return Inertia::render('Admin/Faqs', [
-            'faqs' => Faq::latest()->get()
-        ]);
-    }
-
-    public function storeFaq(Request $request)
-    {
-        $request->validate(['question' => 'required', 'answer' => 'required']);
-        Faq::create($request->all());
-        return redirect()->back()->with('success', 'FAQ added');
-    }
-
-    public function destroyFaq(Faq $faq)
-    {
-        $faq->delete();
-        return redirect()->back()->with('success', 'FAQ deleted');
-    }
 }

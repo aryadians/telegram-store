@@ -3,7 +3,7 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { FolderPlus, Trash2, Hash, Layers } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-export default function Categories({ auth, categories }) {
+export default function Categories({ auth, categories = [] }) {
     const { data, setData, post, processing, reset } = useForm({ name: '' });
 
     const submit = (e) => {
@@ -11,15 +11,7 @@ export default function Categories({ auth, categories }) {
         post(route('admin.categories.store'), {
             onSuccess: () => {
                 reset();
-                Swal.fire({
-                    title: 'Category Created',
-                    icon: 'success',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    customClass: { popup: 'rounded-2xl' }
-                });
+                Swal.fire({ title: 'Success!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
             },
         });
     };
@@ -29,58 +21,49 @@ export default function Categories({ auth, categories }) {
             user={auth.user}
             header={
                 <div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Product Taxonomies</h2>
-                    <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">Organize your inventory categories</p>
+                    <h2 className="text-xl font-bold text-slate-800">Taxonomies</h2>
+                    <p className="text-xs text-slate-400 font-medium uppercase tracking-widest mt-1">Organize Products</p>
                 </div>
             }
         >
             <Head title="Categories" />
 
-            <div className="max-w-4xl mx-auto space-y-10">
+            <div className="max-w-4xl mx-auto space-y-8">
                 <section className="premium-card">
                     <form onSubmit={submit} className="flex gap-4 items-end">
-                        <div className="flex-1 space-y-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">New Category Label</label>
-                            <input type="text" value={data.name} onChange={e => setData('name', e.target.value)} className="input-field" placeholder="e.g. Streaming Services" required />
+                        <div className="flex-1 space-y-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Category Name</label>
+                            <input type="text" value={data.name} onChange={e => setData('name', e.target.value)} className="input-field !py-2.5 text-xs" placeholder="e.g. Streaming" required />
                         </div>
-                        <button type="submit" disabled={processing} className="btn-indigo h-[58px] px-10">
-                            <FolderPlus className="w-5 h-5" /> Add
+                        <button type="submit" disabled={processing} className="btn-indigo !py-3 px-8">
+                            <FolderPlus className="w-4 h-4" /> Add
                         </button>
                     </form>
                 </section>
 
-                <section className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
-                                <th className="py-6 px-10">Category Information</th>
-                                <th className="py-6 px-10 text-center">Linked Products</th>
-                                <th className="py-6 px-10 text-right">Action</th>
+                        <thead className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+                            <tr>
+                                <th className="py-4 px-8">Category Info</th>
+                                <th className="py-4 px-8 text-center">Items</th>
+                                <th className="py-4 px-8 text-right">Delete</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {categories.map((cat) => (
-                                <tr key={cat.id} className="hover:bg-indigo-50/20 transition-all group">
-                                    <td className="py-5 px-10">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-                                                <Layers className="w-5 h-5 text-indigo-600" />
-                                            </div>
-                                            <div className="font-bold text-slate-800">{cat.name}</div>
+                                <tr key={cat.id} className="hover:bg-slate-50 transition-all group">
+                                    <td className="py-4 px-8">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 font-bold text-xs"><Layers className="w-4 h-4" /></div>
+                                            <div className="text-xs font-bold text-slate-700">{cat.name}</div>
                                         </div>
                                     </td>
-                                    <td className="py-5 px-10 text-center">
-                                        <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-black">
-                                            {cat.products_count} Items
-                                        </span>
+                                    <td className="py-4 px-8 text-center">
+                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold uppercase">{cat.products_count} Units</span>
                                     </td>
-                                    <td className="py-5 px-10 text-right">
-                                        <button 
-                                            onClick={() => router.delete(route('admin.categories.destroy', cat.id))}
-                                            className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
+                                    <td className="py-4 px-8 text-right">
+                                        <button onClick={() => router.delete(route('admin.categories.destroy', cat.id))} className="text-slate-300 hover:text-rose-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                                     </td>
                                 </tr>
                             ))}
