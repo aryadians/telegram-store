@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
-import { Save, Info, MessageSquare, Phone, Percent, Shield, FileText, CheckCircle, Layout } from 'lucide-react';
+import { Save, Info, MessageSquare, Phone, Percent, Shield, FileText, CheckCircle, Layout, Megaphone } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function Settings({ auth, settings }) {
@@ -14,6 +14,7 @@ export default function Settings({ auth, settings }) {
         template_warranty: settings.template_warranty || '',
         template_success: settings.template_success || '',
         admin_chat_id: settings.admin_chat_id || '',
+        testi_channel_id: settings.testi_channel_id || '',
     });
 
     const submit = (e) => {
@@ -47,7 +48,9 @@ export default function Settings({ auth, settings }) {
                         </div>
                         <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Store Label</label><input type="text" value={data.store_name} onChange={e => setData('store_name', e.target.value)} className="input-field !py-2.5 text-xs font-bold" /></div>
-                            <div className="space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Admin UID</label><input type="text" value={data.admin_chat_id} onChange={e => setData('admin_chat_id', e.target.value)} className="input-field !py-2.5 text-xs font-mono" /></div>
+                            <div className="space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Admin Chat ID</label><input type="text" value={data.admin_chat_id} onChange={e => setData('admin_chat_id', e.target.value)} className="input-field !py-2.5 text-xs font-mono" /></div>
+                            <div className="space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Megaphone className="w-3 h-3" /> Testimonial Channel ID</label><input type="text" value={data.testi_channel_id} onChange={e => setData('testi_channel_id', e.target.value)} className="input-field !py-2.5 text-xs font-mono" placeholder="e.g. -100123456789" /></div>
+                            <div className="space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">WhatsApp Admin</label><input type="text" value={data.admin_whatsapp} onChange={e => setData('admin_whatsapp', e.target.value)} className="input-field !py-2.5 text-xs" /></div>
                             <div className="md:col-span-2 space-y-1"><label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bot Bio (Start Message)</label><textarea value={data.welcome_message} onChange={e => setData('welcome_message', e.target.value)} className="input-field h-24 !py-3 text-xs leading-relaxed"></textarea></div>
                         </div>
                     </div>
