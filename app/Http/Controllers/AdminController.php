@@ -21,6 +21,14 @@ class AdminController extends Controller
 
         $recentTransactions = Transaction::with('product')->latest()->take(10)->get();
 
+        // Data untuk Grafik (7 Hari Terakhir)
+        $salesChart = Transaction::where('status', 'PAID')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, SUM(amount) as total')
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->get();
+
         $stats = [
             'total_revenue' => Transaction::where('status', 'PAID')->sum('amount'),
             'total_orders' => Transaction::where('status', 'PAID')->count(),
@@ -31,8 +39,16 @@ class AdminController extends Controller
         return Inertia::render('Admin/Dashboard', [
             'products' => $products,
             'recentTransactions' => $recentTransactions,
-            'stats' => $stats
+            'stats' => $stats,
+            'salesChart' => $salesChart
         ]);
+    }
+
+    public function exportTransactions()
+    {
+        $transactions = Transaction::with('product')->latest()->get();
+        $csvExporter = new \App\Services\CsvExporter();
+        return $csvExporter->download($transactions, 'transactions-report-' . date('Y-m-d') . '.csv');
     }
 
     // PRODUCT MANAGEMENT

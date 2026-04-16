@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/stock-opname', [AdminController::class, 'bulkInsertAssets'])->name('admin.stock-opname.store');
     
     Route::get('/admin/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
+    Route::get('/admin/transactions/export', [AdminController::class, 'exportTransactions'])->name('admin.transactions.export');
 });
 
 Route::middleware('auth')->group(function () {
