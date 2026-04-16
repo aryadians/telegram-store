@@ -51,15 +51,12 @@ class DuitkuController extends Controller
         try {
             $response = Http::timeout(10)->post($baseUrl, $payload);
             $result = $response->json();
-
             if (!isset($result['qrString']) && !isset($result['paymentUrl'])) {
-                // Fallback to Checkout Page if QRIS fails
                 $payload['paymentMethod'] = 'VC';
                 $payload['signature'] = md5($merchantCode . $orderId . (int)$amount . $apiKey);
                 $response = Http::post($baseUrl, $payload);
                 $result = $response->json();
             }
-
             $result['merchantOrderId'] = $orderId;
             return $result;
         } catch (\Exception $e) {
@@ -78,7 +75,6 @@ class DuitkuController extends Controller
         if (($data['signature'] ?? '') !== $expectedSignature) return response('Invalid Signature', 400);
 
         if ($resultCode === '00') {
-            // CASE 1: PRODUCT PURCHASE
             if (str_starts_with($orderId, 'INV-')) {
                 $transaction = Transaction::where('reference', $orderId)->where('status', 'UNPAID')->first();
                 if ($transaction) {
@@ -86,9 +82,20 @@ class DuitkuController extends Controller
                     $asset = DigitalAsset::where('product_id', $transaction->product_id)->where('is_used', false)->first();
                     if ($asset) {
                         $asset->update(['is_used' => true, 'transaction_id' => $transaction->id]);
-                        $this->sendToTelegram($transaction->chat_id, "✅ <b>PEMBAYARAN BERHASIL!</b>\n\nProduk: <b>{$transaction->product->name}</b>\nDetail Akun:\n<code>{$asset->data_detail}</code>");
+
+                        // REAL-TIME: Fetch Success Template from Database
+                        $template = Setting::get('template_success', "✅ <b>PEMBAYARAN BERHASIL!</b>\n\nProduk: <b>[PRODUCT_NAME]</b>\nDetail Akun:\n<code>[ACCOUNT_DETAILS]</code>");
                         
-                        // Referral Bonus
+                        // Replace Placeholders
+                        $finalMessage = str_replace(
+                            ['[PRODUCT_NAME]', '[ACCOUNT_DETAILS]'],
+                            [$transaction->product->name, $asset->data_detail],
+                            $template
+                        );
+
+                        $this->sendToTelegram($transaction->chat_id, $finalMessage);
+                        
+                        // Referral logic stays same...
                         $user = TelegramUser::where('chat_id', $transaction->chat_id)->first();
                         if ($user && $user->referred_by) {
                             $referrer = TelegramUser::where('chat_id', $user->referred_by)->first();
@@ -101,7 +108,6 @@ class DuitkuController extends Controller
                     }
                 }
             } 
-            // CASE 2: BALANCE DEPOSIT
             elseif (str_starts_with($orderId, 'DEP-')) {
                 $deposit = Deposit::where('reference', $orderId)->where('status', 'UNPAID')->first();
                 if ($deposit) {
@@ -109,7 +115,7 @@ class DuitkuController extends Controller
                     $user = TelegramUser::where('chat_id', $deposit->chat_id)->first();
                     if ($user) {
                         $user->increment('balance', $deposit->amount);
-                        $this->sendToTelegram($deposit->chat_id, "💰 <b>DEPOSIT BERHASIL!</b>\n\nSaldo Anda telah bertambah sebesar <b>Rp " . number_format($deposit->amount) . "</b>.\nTotal Saldo: <b>Rp " . number_format($user->balance) . "</b>.");
+                        $this->sendToTelegram($deposit->chat_id, "💰 <b>DEPOSIT BERHASIL!</b>\n\nSaldo Anda telah bertambah <b>Rp " . number_format($deposit->amount) . "</b>.");
                     }
                 }
             }

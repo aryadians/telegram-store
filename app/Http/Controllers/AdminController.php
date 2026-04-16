@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\TelegramUser;
 use App\Models\Voucher;
 use App\Models\Setting;
+use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;

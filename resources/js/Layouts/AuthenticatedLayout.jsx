@@ -31,97 +31,68 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: 'Broadcast', href: route('admin.broadcast'), icon: Megaphone, active: route().current('admin.broadcast') },
         { name: 'Stock Injection', href: route('admin.stock-opname'), icon: Database, active: route().current('admin.stock-opname') },
         { name: 'User CRM', href: route('admin.users'), icon: User, active: route().current('admin.users') },
-        { name: 'FAQ Manager', href: route('admin.faqs'), icon: Ticket, active: route().current('admin.faqs') },
-        { name: 'Voucher Factory', href: route('admin.vouchers'), icon: Ticket, active: route().current('admin.vouchers') },
-        { name: 'System Core', href: route('admin.settings'), icon: Settings, active: route().current('admin.settings') },
-        { name: 'Transaction Logs', href: route('admin.transactions'), icon: History, active: route().current('admin.transactions') },
+        { name: 'Vouchers', href: route('admin.vouchers'), icon: Ticket, active: route().current('admin.vouchers') },
+        { name: 'Settings', href: route('admin.settings'), icon: Settings, active: route().current('admin.settings') },
+        { name: 'Transactions', href: route('admin.transactions'), icon: History, active: route().current('admin.transactions') },
     ];
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex overflow-hidden">
-            {/* MOBILE BACKDROP */}
-            <AnimatePresence>
-                {isMobile && isSidebarOpen && (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setIsSidebarOpen(false)}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
-                    />
-                )}
-            </AnimatePresence>
-
+        <div className="min-h-screen bg-slate-50 flex overflow-hidden">
             {/* SIDEBAR */}
             <AnimatePresence mode="wait">
                 {isSidebarOpen && (
                     <motion.aside 
-                        initial={{ x: -320, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -320, opacity: 0 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-                        className="fixed lg:relative z-50 w-[280px] sm:w-80 h-screen bg-[#0F172A] text-white flex flex-col shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] shrink-0"
+                        initial={{ x: -280 }}
+                        animate={{ x: 0 }}
+                        exit={{ x: -280 }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        className="fixed lg:relative z-50 w-72 h-screen bg-white border-r border-slate-200 flex flex-col shrink-0 shadow-sm"
                     >
-                        {/* Logo Area */}
-                        <div className="p-6 sm:p-10 flex items-center justify-between">
-                            <Link href="/" className="flex items-center gap-3 group">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 p-1.5 bg-white rounded-2xl overflow-hidden shadow-2xl group-hover:rotate-6 transition-all duration-500 text-center flex items-center justify-center">
-                                    <img src="/logostore.png" className="w-full h-full object-cover rounded-xl" alt="Logo" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="font-black text-lg sm:text-xl tracking-tighter leading-none">Zona<span className="text-indigo-400">Akun</span></span>
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">Premium Store</span>
-                                </div>
+                        <div className="p-6 flex items-center justify-between border-b border-slate-50">
+                            <Link href="/" className="flex items-center gap-3">
+                                <img src="/logostore.png" className="w-8 h-8 rounded-lg shadow-sm" alt="Logo" />
+                                <span className="font-bold text-lg tracking-tight text-slate-900">Store<span className="text-indigo-600">Console</span></span>
                             </Link>
-                            <button onClick={() => setIsSidebarOpen(false)} className="p-2.5 hover:bg-white/10 rounded-xl transition-colors border border-white/5">
-                                <ChevronLeft className="w-5 h-5 text-slate-400" />
+                            <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+                                <ChevronLeft className="w-4 h-4" />
                             </button>
                         </div>
 
-                        {/* Nav Items */}
-                        <nav className="flex-1 px-4 sm:px-6 py-4 space-y-2 overflow-y-auto custom-scrollbar">
-                            <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] px-4 mb-6">Management Console</div>
+                        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                             {navItems.map((item) => (
                                 <Link 
                                     key={item.name}
                                     href={item.href}
                                     onClick={() => isMobile && setIsSidebarOpen(false)}
-                                    className={`flex items-center gap-4 px-5 py-4 rounded-[1.2rem] sm:rounded-[1.5rem] transition-all duration-300 group ${
+                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-medium text-sm ${
                                         item.active 
-                                        ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-900/40' 
-                                        : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                        ? 'bg-indigo-50 text-indigo-700' 
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                                     }`}
                                 >
-                                    <item.icon className={`w-5 h-5 transition-all duration-300 ${item.active ? 'scale-110' : 'group-hover:text-indigo-400'}`} />
-                                    <span className={`font-bold text-xs sm:text-sm tracking-tight ${item.active ? 'opacity-100' : 'opacity-80'}`}>{item.name}</span>
-                                    {item.active && (
-                                        <motion.div layoutId="active-pill" className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_10px_white]" />
-                                    )}
+                                    <item.icon className={`w-4 h-4 ${item.active ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                    {item.name}
                                 </Link>
                             ))}
                         </nav>
 
-                        {/* Footer / Logout */}
-                        <div className="p-6 sm:p-8 border-t border-white/5 bg-black/20">
-                            <div className="flex items-center gap-4 mb-6 sm:mb-8 px-2">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg border border-white/10">
-                                    <User className="w-5 h-5 text-white" />
+                        <div className="p-6 border-t border-slate-100 bg-slate-50/50">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                                    {user.name[0]}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="font-black text-xs sm:text-sm truncate uppercase tracking-tight">{user.name}</div>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Active</span>
-                                    </div>
+                                    <div className="font-bold text-sm truncate text-slate-800">{user.name}</div>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase">Administrator</div>
                                 </div>
                             </div>
                             <Link 
                                 href={route('logout')} 
                                 method="post" 
                                 as="button" 
-                                className="w-full flex items-center justify-center gap-3 py-4 bg-rose-500/10 text-rose-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-rose-500 hover:text-white transition-all duration-500 shadow-sm"
+                                className="w-full flex items-center justify-center gap-2 py-2 text-rose-600 rounded-lg font-bold text-xs hover:bg-rose-50 transition-all border border-rose-100"
                             >
-                                <LogOut className="w-4 h-4" /> Terminate Session
+                                <LogOut className="w-3.5 h-3.5" /> Log Out
                             </Link>
                         </div>
                     </motion.aside>
@@ -130,36 +101,22 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {/* MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
-                {/* Modern Top Bar */}
-                <header className="h-20 sm:h-24 bg-white/70 backdrop-blur-2xl border-b border-slate-100 flex items-center justify-between px-6 sm:px-12 sticky top-0 z-40">
-                    <div className="flex items-center gap-4 sm:gap-8">
+                <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40">
+                    <div className="flex items-center gap-4">
                         {!isSidebarOpen && (
-                            <button 
-                                onClick={() => setIsSidebarOpen(true)} 
-                                className="p-3 sm:p-4 bg-white border border-slate-200 rounded-[1rem] sm:rounded-[1.2rem] hover:bg-slate-50 transition-all shadow-xl shadow-slate-200/50 group active:scale-90"
-                            >
-                                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 group-hover:scale-110 transition-transform" />
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                                <Menu className="w-5 h-5 text-slate-600" />
                             </button>
                         )}
-                        <div className="animate-in fade-in slide-in-from-left-4 duration-700 w-full overflow-hidden">
-                            {header}
-                        </div>
+                        <div className="font-bold text-slate-800">{header}</div>
                     </div>
-
-                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-4">
-                        <Link 
-                            href={route('admin.settings')}
-                            className="p-3 sm:p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all duration-300 shadow-sm hidden sm:flex"
-                        >
-                            <Settings2 className="w-5 h-5" />
-                        </Link>
-                    </div>
+                    <Link href={route('admin.settings')} className="p-2 text-slate-400 hover:text-slate-600 transition">
+                        <Settings2 className="w-5 h-5" />
+                    </Link>
                 </header>
 
-                {/* Content Container */}
-                <main className="flex-1 overflow-y-auto p-6 sm:p-12 custom-scrollbar relative">
-                    <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-indigo-50/30 to-transparent pointer-events-none" />
-                    <div className="relative z-10 max-w-[1600px] mx-auto">
+                <main className="flex-1 overflow-y-auto p-6 lg:p-10">
+                    <div className="max-w-7xl mx-auto">
                         {children}
                     </div>
                 </main>

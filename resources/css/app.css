@@ -6,29 +6,27 @@
 
 @layer base {
     body {
-        @apply font-['Plus_Jakarta_Sans'] bg-[#F8FAFC] text-slate-900 antialiased;
+        @apply font-['Plus_Jakarta_Sans'] bg-white text-slate-900 antialiased;
     }
 }
 
 @layer components {
     .premium-card {
-        @apply bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2.5rem] p-8 transition-all duration-300;
+        @apply bg-white border border-slate-200 rounded-2xl p-6 transition-all duration-200 hover:border-indigo-200 hover:shadow-sm;
     }
     
     .input-field {
-        @apply w-full border-slate-200 rounded-2xl p-4 focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all font-semibold text-slate-700 placeholder:text-slate-300;
+        @apply w-full border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-slate-700 placeholder:text-slate-300;
     }
     
     .btn-primary {
-        @apply bg-[#0F172A] text-white font-black py-4 px-8 rounded-2xl hover:bg-black hover:shadow-2xl hover:shadow-slate-200 transition-all flex items-center justify-center gap-2 active:scale-[0.98];
+        @apply bg-slate-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-[0.98];
     }
 
     .btn-indigo {
-        @apply bg-indigo-600 text-white font-black py-4 px-8 rounded-2xl hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-200 transition-all flex items-center justify-center gap-2 active:scale-[0.98];
+        @apply bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 active:scale-[0.98];
     }
 }
 
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
