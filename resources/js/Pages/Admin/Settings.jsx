@@ -3,7 +3,7 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { 
     Save, Layout, Megaphone, CreditCard, 
     Gem, FileText, Database, Download, Sparkles,
-    Instagram, Phone, Share2, Trash2
+    Phone, Share2, Trash2
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 

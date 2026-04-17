@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Zap, ShieldCheck, MessageSquare, ArrowRight, Instagram, Phone } from 'lucide-react';
+import { ShoppingCart, Zap, ShieldCheck, MessageSquare, ArrowRight, Phone } from 'lucide-react';
 
 export default function Welcome({ auth, settings = {} }) {
     
