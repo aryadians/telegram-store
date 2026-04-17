@@ -40,9 +40,20 @@ class DuitkuController extends Controller
     public function handleWebhook(Request $request)
     {
         $data = $request->all();
-        $orderId = $data['merchantOrderId'] ?? '';
-        $resultCode = $data['resultCode'] ?? '';
+        $merchantCode = env('DUITKU_MERCHANT_CODE');
+        $apiKey = env('DUITKU_API_KEY');
         
+        $orderId = $data['merchantOrderId'] ?? '';
+        $amount = $data['amount'] ?? '';
+        $resultCode = $data['resultCode'] ?? '';
+        $signature = $data['signature'] ?? '';
+
+        $calcSignature = md5($merchantCode . $amount . $orderId . $apiKey);
+
+        if ($signature !== $calcSignature) {
+            return response('Bad Signature', 400);
+        }
+
         if ($resultCode === '00') {
             if (str_starts_with($orderId, 'INV-')) {
                 $transaction = Transaction::where('reference', $orderId)->where('status', 'UNPAID')->first();
