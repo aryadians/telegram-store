@@ -29,6 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/admin/broadcast', [AdminController::class, 'broadcastPage'])->name('admin.broadcast');
     Route::post('/admin/broadcast', [AdminController::class, 'sendBroadcast'])->name('admin.broadcast.send');
+    Route::post('/admin/broadcast/templates', [AdminController::class, 'storeTemplate'])->name('admin.broadcast.template.store');
+    Route::delete('/admin/broadcast/templates/{template}', [AdminController::class, 'destroyTemplate'])->name('admin.broadcast.template.destroy');
 
     Route::get('/admin/logs', [AdminController::class, 'logs'])->name('admin.logs');
     Route::post('/admin/products/bulk-price', [AdminController::class, 'bulkPriceUpdate'])->name('admin.products.bulk-price');
