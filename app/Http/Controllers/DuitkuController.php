@@ -56,6 +56,12 @@ class DuitkuController extends Controller
                         $finalMessage = str_replace(['[PRODUCT_NAME]', '[ACCOUNT_DETAILS]'], [$transaction->product->name, $asset->data_detail], $template);
                         $this->sendToTelegram($transaction->chat_id, $finalMessage);
 
+                        // WATCHDOG: Check remaining stock
+                        $remaining = DigitalAsset::where('product_id', $transaction->product_id)->where('is_used', false)->count();
+                        if ($remaining < 5) {
+                            AdminController::alertOwner("⚠️ <b>STOCK ALERT:</b> Produk <b>{$transaction->product->name}</b> tersisa {$remaining}!");
+                        }
+
                         // RATING PROMPT
                         $ratingText = "⭐ <b>BANTU KAMI BERKEMBANG</b>\n\nBagaimana pengalaman belanja Anda? Silakan berikan rating untuk produk ini:";
                         $ratingBtns = [[
