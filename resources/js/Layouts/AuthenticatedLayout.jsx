@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { 
     LayoutDashboard, ShoppingBag, FolderTree, Megaphone, 
     Database, History, User, Ticket, Settings, 
-    Menu, ChevronRight, LogOut, Settings2, ChevronLeft
+    Menu, ChevronRight, LogOut, Settings2, ChevronLeft, Terminal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

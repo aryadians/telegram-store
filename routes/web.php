@@ -10,8 +10,7 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        'settings' => \App\Models\Setting::all()->pluck('value', 'key'),
     ]);
 });
 
@@ -50,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+    Route::get('/admin/settings/backup', [AdminController::class, 'downloadBackup'])->name('admin.settings.backup');
 
     Route::get('/admin/faqs', [AdminController::class, 'faqs'])->name('admin.faqs');
     Route::post('/admin/faqs', [AdminController::class, 'storeFaq'])->name('admin.faqs.store');
