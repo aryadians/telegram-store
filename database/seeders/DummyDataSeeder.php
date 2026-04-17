@@ -24,8 +24,8 @@ class DummyDataSeeder extends Seeder
         Faq::truncate();
         Voucher::truncate();
 
-        // 1. SETTINGS SULTAN FnB
-        Setting::set('store_name', 'FnB Account Sultan');
+        // 1. SETTINGS ZONA AKUN PREMIUM
+        Setting::set('store_name', 'Zona Akun Premium');
         Setting::set('welcome_message', 'Pusat Akun FnB Premium Terpercaya. Nikmati Kopi Kenangan, Fore, hingga KFC dengan harga miring!');
 
         // 2. CATEGORIES
