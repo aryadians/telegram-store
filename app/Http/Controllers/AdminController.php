@@ -113,7 +113,20 @@ class AdminController extends Controller
     public function transactions(Request $request) { $query = Transaction::with(['product', 'digitalAsset'])->latest(); if ($request->search) { $query->where('reference', 'like', "%{$request->search}%")->orWhere('chat_id', 'like', "%{$request->search}%"); } return Inertia::render('Admin/Transactions', ['transactions' => $query->paginate(20)->withQueryString(), 'filters' => $request->only(['search'])]); }
     public function logs() { $logPath = storage_path('logs/laravel.log'); $logs = File::exists($logPath) ? File::get($logPath) : "No logs."; $lines = explode("\n", $logs); $lastLogs = implode("\n", array_slice($lines, -150)); return Inertia::render('Admin/Logs', [ 'system_logs' => $lastLogs, 'audit_logs' => ActivityLog::latest()->paginate(50) ]); }
     public function categories() { return Inertia::render('Admin/Categories', ['categories' => Category::withCount('products')->get()]); }
-    public function products() { return Inertia::render('Admin/Products', ['products' => Product::with('category')->get(), 'categories' => Category::all()]); }
+    // WEBHOOK DIAGNOSTICS
+    public function checkWebhook()
+    {
+        $token = env('TELEGRAM_BOT_TOKEN');
+        $response = Http::get("https://api.telegram.org/bot{$token}/getWebhookInfo");
+        if ($response->successful()) {
+            ActivityLog::log("Apex: Admin performed a Webhook Diagnostic.");
+            return redirect()->back();
+        }
+        return redirect()->back()->withErrors(['webhook' => 'Failed to connect.']);
+    }
+
+    public function products()
+ { return Inertia::render('Admin/Products', ['products' => Product::with('category')->get(), 'categories' => Category::all()]); }
     public function users() { return Inertia::render('Admin/Users', ['users' => TelegramUser::latest()->paginate(20)]); }
     public function vouchers() { return Inertia::render('Admin/Vouchers', ['vouchers' => Voucher::latest()->get()]); }
     public function faqs() { return Inertia::render('Admin/Faqs', ['faqs' => Faq::latest()->get()]); }

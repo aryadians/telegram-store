@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
     Route::get('/admin/settings/backup', [AdminController::class, 'downloadBackup'])->name('admin.settings.backup');
     Route::post('/admin/settings/cleanup', [AdminController::class, 'cleanupInvoices'])->name('admin.settings.cleanup');
+    Route::post('/admin/settings/webhook-check', [AdminController::class, 'checkWebhook'])->name('admin.settings.webhook-check');
 
     Route::get('/admin/faqs', [AdminController::class, 'faqs'])->name('admin.faqs');
     Route::post('/admin/faqs', [AdminController::class, 'storeFaq'])->name('admin.faqs.store');
