@@ -2,38 +2,34 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
-    ResponsiveContainer, BarChart, Bar, Cell 
+    ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie 
 } from 'recharts';
 import { 
     Download, Users, TrendingUp, Clock, AlertCircle, 
-    ShoppingCart, Sparkles, Megaphone, Database, ArrowUpRight, DollarSign 
+    ShoppingCart, Sparkles, Megaphone, Database, ArrowUpRight, DollarSign,
+    Target, Zap, ShieldCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function Dashboard({ auth, products = [], recentTransactions = [], stats = {}, salesChart = [], topProducts = [] }) {
+export default function Dashboard({ auth, products = [], recentTransactions = [], stats = {}, salesChart = [] }) {
     
-    // Formatting chart data safely with proper fallback
     const chartData = (salesChart || []).map(item => ({
         name: item.date ? new Date(item.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : 'N/A',
         total: Number(item.total || 0)
     }));
 
-    const topProductsData = (topProducts || []).map(item => ({
-        name: item.product?.name || 'Unknown',
-        revenue: Number(item.total_revenue || 0)
+    const interactionData = (stats.top_interactions || []).map(item => ({
+        name: item.action.replace('CLICK_', '').replace('CMD_', '').substring(0, 10),
+        value: item.total
     }));
 
+    const segmentData = [
+        { name: 'Whales', value: stats.segments?.whale || 0, color: '#4F46E5' },
+        { name: 'Loyal', value: stats.segments?.loyal || 0, color: '#818CF8' },
+        { name: 'Newbie', value: stats.segments?.newbie || 0, color: '#C7D2FE' },
+    ];
+
     const COLORS = ['#4F46E5', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-    };
-
-    const itemVariants = {
-        hidden: { y: 10, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
-    };
 
     return (
         <AuthenticatedLayout
@@ -41,143 +37,122 @@ export default function Dashboard({ auth, products = [], recentTransactions = []
             header={
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                            Dashboard <Sparkles className="w-4 h-4 text-indigo-500" />
+                        <h2 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2 uppercase">
+                            Empire Intelligence <Target className="w-4 h-4 text-indigo-500" />
                         </h2>
-                        <p className="text-slate-400 text-xs font-medium">Business Intelligence Unit</p>
+                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Data-Driven Sovereignty</p>
                     </div>
-                    <a href={route('admin.transactions.export')} className="btn-primary !py-2 !px-4">
-                        <Download className="w-3.5 h-3.5" /> Export Report
-                    </a>
                 </div>
             }
         >
-            <Head title="Dashboard" />
+            <Head title="Intelligence" />
 
-            <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
+            <div className="space-y-6 pb-20">
                 
-                {/* QUICK ACTIONS */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <QuickActionCard title="Broadcast" desc="Send promo blast" href={route('admin.broadcast')} icon={Megaphone} color="text-indigo-600 bg-indigo-50" />
-                    <QuickActionCard title="Inject Stock" desc="Massive refill" href={route('admin.stock-opname')} icon={Database} color="text-slate-600 bg-slate-100" />
-                </div>
-
-                {/* STATS */}
+                {/* CORE STATS */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard label="Revenue" value={`Rp${Number(stats.total_revenue || 0).toLocaleString()}`} icon={TrendingUp} color="text-indigo-600" bg="bg-indigo-50" variant={itemVariants} />
-                    <StatCard label="Net Profit" value={`Rp${Number(stats.total_profit || 0).toLocaleString()}`} icon={DollarSign} color="text-emerald-600" bg="bg-emerald-50" variant={itemVariants} />
-                    <StatCard label="Total Users" value={stats.total_users || 0} icon={Users} color="text-blue-600" bg="bg-blue-50" subValue={`+${stats.new_users_today || 0} today`} variant={itemVariants} />
-                    <StatCard label="Avg Rating" value={`⭐ ${Number(stats.avg_rating || 0).toFixed(1)}`} icon={Sparkles} color="text-amber-600" bg="bg-amber-50" variant={itemVariants} />
+                    <StatCard label="Revenue" value={`Rp${Number(stats.total_revenue || 0).toLocaleString()}`} icon={TrendingUp} color="text-indigo-600" bg="bg-indigo-50" />
+                    <StatCard label="Net Profit" value={`Rp${Number(stats.total_profit || 0).toLocaleString()}`} icon={DollarSign} color="text-emerald-600" bg="bg-emerald-50" />
+                    <StatCard label="Customer Base" value={stats.total_users || 0} icon={Users} color="text-blue-600" bg="bg-blue-50" />
+                    <StatCard label="Avg Rating" value={`⭐ ${Number(stats.avg_rating || 0).toFixed(1)}`} icon={Sparkles} color="text-amber-600" bg="bg-amber-50" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* CHART */}
-                    <motion.div variants={itemVariants} className="lg:col-span-2 premium-card">
-                        <h3 className="text-sm font-bold text-slate-700 mb-6 uppercase tracking-wider">Growth Analysis (7D)</h3>
-                        <div className="h-64">
+                    {/* INTERACTION INTEL */}
+                    <div className="lg:col-span-2 premium-card">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Behavioral Clickstream (Top Actions)</h3>
+                        <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={chartData}>
+                                <BarChart data={interactionData}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
-                                    <Tooltip contentStyle={{borderRadius: '0.75rem', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.05)'}} />
-                                    <Area type="monotone" dataKey="total" stroke="#4F46E5" fill="#EEF2FF" strokeWidth={2} />
-                                </AreaChart>
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: '700', fill: '#94A3B8'}} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: '700', fill: '#94A3B8'}} />
+                                    <Tooltip cursor={{fill: '#F8FAFC'}} contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'}} />
+                                    <Bar dataKey="value" fill="#4F46E5" radius={[10, 10, 0, 0]} barSize={40} />
+                                </BarChart>
                             </ResponsiveContainer>
                         </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div variants={itemVariants} className="premium-card">
-                        <h3 className="text-sm font-bold text-slate-700 mb-6 uppercase tracking-wider">Top Selling</h3>
-                        <div className="h-64">
-                            {topProductsData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={topProductsData} layout="vertical">
-                                        <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={80} tick={{fontSize: 9, fontWeight: '700', fill: '#64748B'}} />
-                                        <Tooltip cursor={{fill: 'transparent'}} />
-                                        <Bar dataKey="revenue" radius={[0, 8, 8, 0]}>
-                                            {topProductsData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="h-full flex items-center justify-center text-slate-300 text-[10px] font-black uppercase tracking-widest italic">No Sales Record</div>
-                            )}
+                    {/* SEGMENTATION PIE */}
+                    <div className="premium-card">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">User Segmentation</h3>
+                        <div className="h-56">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={segmentData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                        {segmentData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
                         </div>
-                    </motion.div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
-                    <motion.div variants={itemVariants} className="premium-card">
-                        <h3 className="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2 uppercase tracking-wider">
-                            <AlertCircle className="w-4 h-4 text-rose-500" /> Stock Warning
-                        </h3>
-                        <div className="space-y-3">
-                            {products.filter(p => p.total_stock < 5).map(p => (
-                                <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                    <div className="min-w-0">
-                                        <div className="text-xs font-bold text-slate-800 truncate uppercase">{p.name}</div>
-                                        <div className="text-[9px] text-slate-400 font-bold">{p.code}</div>
+                        <div className="space-y-3 mt-4">
+                            {segmentData.map(s => (
+                                <div key={s.name} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full" style={{backgroundColor: s.color}}></div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase">{s.name}</span>
                                     </div>
-                                    <div className="text-sm font-black text-rose-600 leading-none">{p.total_stock}</div>
+                                    <span className="text-xs font-black text-slate-800">{s.value}</span>
                                 </div>
                             ))}
                         </div>
-                    </motion.div>
+                    </div>
+                </div>
 
-                    <motion.div variants={itemVariants} className="premium-card !p-0 overflow-hidden">
-                        <div className="p-5 border-b border-slate-50 bg-slate-50/50">
-                            <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider leading-none text-center">Live Activity</h3>
-                        </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* RECENT ACTIVITY */}
+                    <div className="premium-card !p-0 overflow-hidden">
+                        <div className="px-8 py-5 border-b border-slate-50 bg-slate-50/30 font-black text-[9px] uppercase tracking-widest text-slate-400 text-center">Live Transaction Feed</div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <tbody className="divide-y divide-slate-50">
                                     {recentTransactions.map(tx => (
-                                        <tr key={tx.id} className="hover:bg-slate-50 transition">
-                                            <td className="py-4 px-6">
-                                                <div className="text-xs font-bold text-slate-700 uppercase truncate">{tx.product?.name || 'Unknown'}</div>
-                                                <div className="text-[9px] font-mono text-slate-400 leading-none mt-1">{tx.reference}</div>
+                                        <tr key={tx.id} className="hover:bg-slate-50/50 transition">
+                                            <td className="py-4 px-8">
+                                                <div className="text-xs font-bold text-slate-800 uppercase">{tx.product?.name || 'Deposit'}</div>
+                                                <div className="text-[9px] font-mono text-slate-400">UID: {tx.chat_id}</div>
                                             </td>
-                                            <td className="py-4 px-6 text-xs font-black text-slate-900 text-right shrink-0">Rp{Number(tx.amount || 0).toLocaleString()}</td>
+                                            <td className="py-4 px-8 text-right font-black text-slate-900 text-xs">Rp{Number(tx.amount || 0).toLocaleString()}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                    </motion.div>
+                    </div>
+
+                    {/* GROWTH ANALYSIS */}
+                    <div className="premium-card">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Revenue Growth (7D)</h3>
+                        <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94A3B8'}} />
+                                    <YAxis axisLine={false} hide />
+                                    <Tooltip contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.05)'}} />
+                                    <Area type="monotone" dataKey="total" stroke="#4F46E5" fill="#EEF2FF" strokeWidth={3} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
                 </div>
-            </motion.div>
+            </div>
         </AuthenticatedLayout>
     );
 }
 
-function StatCard({ label, value, icon: Icon, color, bg, variant, subValue }) {
+function StatCard({ label, value, icon: Icon, color, bg }) {
     return (
-        <motion.div variants={variant} className="premium-card !p-5">
-            <div className="flex items-center gap-3 mb-2">
-                <div className={`p-2 rounded-lg ${bg} ${color}`}><Icon className="w-4 h-4" /></div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{label}</span>
+        <div className="premium-card !p-6 shadow-sm border-slate-100">
+            <div className="flex items-center gap-3 mb-3">
+                <div className={`p-2.5 rounded-xl ${bg} ${color} border border-current border-opacity-10`}><Icon className="w-4 h-4" /></div>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
             </div>
-            <div className="text-base font-bold text-slate-900 tracking-tight leading-none">{value}</div>
-            {subValue && <div className="text-[9px] text-emerald-500 font-bold mt-1 uppercase tracking-tighter">{subValue}</div>}
-        </motion.div>
-    );
-}
-
-function QuickActionCard({ title, desc, href, icon: Icon, color }) {
-    return (
-        <Link href={href} className={`flex items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:border-indigo-300 transition-all shadow-sm group`}>
-            <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${color} bg-opacity-10`}><Icon className="w-5 h-5" /></div>
-                <div>
-                    <h4 className="text-sm font-bold text-slate-800 leading-none mb-1">{title}</h4>
-                    <p className="text-[10px] text-slate-400 font-medium">{desc}</p>
-                </div>
-            </div>
-            <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-        </Link>
+            <div className="text-lg font-black text-slate-900 tracking-tight leading-none">{value}</div>
+        </div>
     );
 }
